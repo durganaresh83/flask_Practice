@@ -24,10 +24,22 @@ pipeline {
 
         stage('Test') {
             steps {
+                echo "Starting MongoDB container for tests..."
+                sh '''
+                    docker run -d -p 27017:27017 --name test-mongo mongo:latest
+                '''
+
                 echo "Running tests..."
                 sh '''
                     . venv/bin/activate
+                    export MONGO_URI="mongodb://localhost:27017/testdb"
                     pytest
+                '''
+
+                echo "Stopping MongoDB..."
+                sh '''
+                    docker stop test-mongo || true
+                    docker rm test-mongo || true
                 '''
             }
         }
